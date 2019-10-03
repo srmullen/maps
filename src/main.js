@@ -2,7 +2,7 @@ import dat from 'dat.gui';
 import paper, { Raster, Group, Path, Point, Size } from 'paper';
 import * as math from 'mathjs';
 import { A4, STRATH_SMALL, ARTIST_SKETCH, createCanvas } from './setup';
-import { degreesToRadians } from './utils';
+import { degreesToRadians, saveAsSVG } from './utils';
 import { slice } from './contours';
 import * as topojson from 'topojson';
 import atlas from 'us-atlas/states-albers-10m.json';
@@ -648,4 +648,8 @@ function createGeometryCollection(states, names=[]) {
     type: 'GeometryCollection',
     geometries
   };
+}
+
+window.saveAsSvg = function save(name) {
+  saveAsSVG(paper.project, name);
 }

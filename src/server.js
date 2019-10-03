@@ -1,8 +1,14 @@
+const fs = require('fs');
 const express = require('express');
 const fetch = require('node-fetch');
+const bodyParser = require('body-parser');
+const pako = require('pako');
+require('body-parser-xml')(bodyParser);
 
 const PORT = 3500;
 const app = express();
+
+app.use(bodyParser.json({ limit: '10000kb' }));
 
 app.get('/', (req, res) => res.send('Hello World!'));
 
@@ -18,6 +24,18 @@ app.get('/tile', (req, res) => {
     res.send(buffer);
   }).catch(err => {
     res.status(404).send('Bad Request');
+  });
+});
+
+app.put('/svg', (req, res) => {
+  console.log("Putting SVG");
+  const content = pako.inflate(req.body.content, { to: 'string' });
+  fs.writeFile(`./svg/${req.body.name}.svg`, content, (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      res.send("Success");
+    }
   });
 });
 
