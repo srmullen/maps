@@ -1,5 +1,7 @@
 import { Vec3 } from './Vec3';
 import { Point } from 'paper';
+import { pixelToMeters, getPixel } from './image';
+import { getCellType } from './grid';
 
 export function slice(grid, width, height, z) {
   const result = [];
@@ -98,4 +100,42 @@ function intersectSegment(z, v0, v1) {
   }
   const v = v0.add(v1.subtract(v0).multiply(t));
   return [v, true];
+}
+
+/**
+ * 
+ * @param {Cell.bounds} bounds 
+ * @param {Ball[]} balls 
+ * @return {[number, number, number, number]} - [BL, BR, TR, TL]
+ */
+function getVertexValues(fn, bounds) {
+  let bl = fn(bounds.left, bounds.bottom);
+  let br = fn(bounds.right, bounds.bottom);
+  let tr = fn(bounds.right, bounds.top);
+  let tl = fn(bounds.left, bounds.top);
+  return [bl, br, tr, tl];
+}
+
+// Marching squares
+export function toContourLines(grid, raster, minElevation, maxElevation) {
+  const image = raster.getImageData();
+  const toElevation = (x, y) => {
+    return pixelToMeters(getPixel(image, x, y));
+  }
+  const nLines = 64;
+  const elevationDiff = (maxElevation - minElevation);
+  const stepSize = elevationDiff / nLines
+  // const midElevation = minElevation + elevationDiff / 2;
+  for (let i = 0; i < nLines; i++) {
+    const elevation = minElevation + (stepSize * i);
+    for (let y = 0; y < grid.length; y++) {
+      const row = grid[y]
+      for (let x = 0; x < row.length; x++) {
+        const cell = row[x];
+        const vertexValues = getVertexValues(toElevation, cell.bounds);
+        const cellType = getCellType(vertexValues, elevation);
+        cell.draw(cellType);
+      }
+    }
+  }
 }
